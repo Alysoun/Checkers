@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Checkers</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="game-container">
+        <div class="game-info">
+            <div class="player-turn">Current Turn: Red</div>
+            <div class="score">
+                <span class="red-score">Red: 12</span>
+                <span class="black-score">Black: 12</span>
+            </div>
+        </div>
+        <div id="board" class="board"></div>
+        <div class="controls">
+            <button id="newGame">New Game</button>
+            <button id="undo">Undo Move</button>
+        </div>
+    </div>
+    <div id="victoryModal" class="modal">
+        <div class="modal-content">
+            <h2 id="victoryMessage"></h2>
+            <button id="newGameButton">New Game</button>
+        </div>
+    </div>
+    <script src="js/piece.js"></script>
+    <script src="js/board.js"></script>
+    <script src="js/move.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html> 
