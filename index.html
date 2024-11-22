@@ -10,11 +10,20 @@
     <div class="splash-screen" id="splashScreen">
         <div class="splash-content">
             <h1 class="splash-title">Checkers</h1>
-            <p>Choose your game mode:</p>
-            <button class="splash-button" data-mode="two-player">Two Players</button>
-            <button class="splash-button" data-mode="ai-easy">vs AI (Easy)</button>
-            <button class="splash-button" data-mode="ai-medium">vs AI (Medium)</button>
-            <button class="splash-button" data-mode="ai-hard">vs AI (Hard)</button>
+            <div class="color-select">
+                <p>Play as:</p>
+                <div class="color-buttons">
+                    <button class="color-button red-button active" data-color="red">Red</button>
+                    <button class="color-button black-button" data-color="black">Black</button>
+                </div>
+            </div>
+            <div class="mode-select">
+                <p>Game Mode:</p>
+                <button class="splash-button" data-mode="two-player">Two Players</button>
+                <button class="splash-button" data-mode="ai-easy">vs AI (Easy)</button>
+                <button class="splash-button" data-mode="ai-medium">vs AI (Medium)</button>
+                <button class="splash-button" data-mode="ai-hard">vs AI (Hard)</button>
+            </div>
         </div>
     </div>
     <div class="game-container">
@@ -37,6 +46,8 @@
             <button id="newGameButton">New Game</button>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
     <script src="js/piece.js"></script>
     <script src="js/board.js"></script>
     <script src="js/move.js"></script>

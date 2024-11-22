@@ -12,28 +12,42 @@ class Board {
         this.squares = Array(8).fill().map(() => Array(8).fill(null));
         this.squareElements.clear();
 
+        const game = Game.instance;
+        const isBlackPlayer = game.playerColor === 'black';
+
         // Create board squares
         for (let y = 0; y < 8; y++) {
             for (let x = 0; x < 8; x++) {
                 const square = document.createElement('div');
-                square.className = `square ${(x + y) % 2 === 0 ? 'light' : 'dark'}`;
+                square.className = `square ${((x + y) % 2 === 0) ? 'light' : 'dark'}`;
                 square.dataset.x = x;
                 square.dataset.y = y;
                 square.addEventListener('click', (e) => this.handleSquareClick(x, y));
                 this.element.appendChild(square);
                 
-                // Store the square element reference
                 this.squareElements.set(`${x},${y}`, square);
 
-                // Initialize pieces
-                if ((x + y) % 2 !== 0) {
+                // Initialize pieces on dark squares only
+                if ((x + y) % 2 === 0) {
                     if (y < 3) {
+                        // Always place black pieces at top
                         this.addPiece(new Piece('black', x, y));
                     } else if (y > 4) {
+                        // Always place red pieces at bottom
                         this.addPiece(new Piece('red', x, y));
                     }
                 }
             }
+        }
+
+        // If playing as black, rotate the entire board
+        if (isBlackPlayer) {
+            this.element.style.transform = 
+                'perspective(1200px) rotateX(var(--board-angle)) rotateZ(180deg) scale(var(--board-scale))';
+            // Rotate all pieces to maintain their orientation
+            document.querySelectorAll('.piece').forEach(piece => {
+                piece.style.transform += ' rotateZ(180deg)';
+            });
         }
     }
 
@@ -195,6 +209,18 @@ class Board {
     }
 
     handleSquareClick(x, y) {
+        // Debug information
+        const square = this.getSquareElement(x, y);
+        const piece = this.getPiece(x, y);
+        console.group(`Square (${x}, ${y}) Debug Info:`);
+        console.log('Square Element:', square);
+        console.log('Square Classes:', square.className);
+        console.log('Piece:', piece);
+        console.log('Square Color:', ((x + y) % 2 === 0) ? 'light' : 'dark');
+        console.dir(square.style);
+        console.groupEnd();
+
+        // Original game logic
         Game.instance.handleSquareClick(x, y);
     }
 

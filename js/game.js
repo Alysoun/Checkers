@@ -18,15 +18,29 @@ class Game {
         this.capturedPieces = [];
         this.mandatoryJumps = [];
         this.boardStates = [];
+        this.playerColor = 'red';
 
         this.setupSplashScreen();
     }
 
     setupSplashScreen() {
         const splashScreen = document.getElementById('splashScreen');
-        const buttons = splashScreen.querySelectorAll('.splash-button');
+        const colorButtons = splashScreen.querySelectorAll('.color-button');
+        const modeButtons = splashScreen.querySelectorAll('.splash-button');
 
-        buttons.forEach(button => {
+        // Color selection handling
+        colorButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all buttons
+                colorButtons.forEach(btn => btn.classList.remove('active'));
+                // Add active class to clicked button
+                button.classList.add('active');
+                this.playerColor = button.dataset.color;
+            });
+        });
+
+        // Game mode selection
+        modeButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const mode = button.dataset.mode;
                 this.startGame(mode);
@@ -39,20 +53,41 @@ class Game {
     }
 
     startGame(mode) {
-        // Set up AI based on mode
+        this.currentPlayer = 'red';
+        this.gameOver = false;
+        this.selectedPiece = null;
+        this.isPlayerTurnComplete = false;
+        this.boardStates = [];
+        this.capturedPieces = [];
+
         if (mode.startsWith('ai-')) {
             this.ai = new AI(mode.replace('ai-', ''));
             this.isAIGame = true;
+            
+            if (this.playerColor === 'black') {
+                this.board.element.style.transform = 
+                    'perspective(1200px) rotateX(var(--board-angle)) rotateZ(180deg) scale(var(--board-scale))';
+                document.querySelectorAll('.piece').forEach(piece => {
+                    piece.style.transform = 'rotateZ(180deg)';
+                });
+            }
         } else {
             this.ai = null;
             this.isAIGame = false;
         }
 
-        // Initialize the game
         this.initialize();
+
+        if (this.isAIGame && this.playerColor === 'black') {
+            setTimeout(() => this.ai.makeMove(this), 500);
+        }
     }
 
-    initialize() {
+    async initialize() {
+        // Load 3D models first
+        await Piece.loadModels();
+        
+        // Then initialize the game
         this.board.initialize();
         this.currentPlayer = 'red';
         this.selectedPiece = null;
@@ -63,6 +98,12 @@ class Game {
         this.boardStates = [this.captureCurrentBoardState()];
         this.setupEventListeners();
         this.updateGameInfo();
+
+        // Check for mandatory jumps at game start
+        const mandatoryJumps = this.getAllAvailableJumps();
+        if (mandatoryJumps.length > 0) {
+            this.board.highlightPiecesWithJumps(mandatoryJumps);
+        }
     }
 
     setupEventListeners() {
@@ -71,19 +112,20 @@ class Game {
     }
 
     handleSquareClick(x, y) {
-        console.log('Square clicked:', { x, y });
+        console.log('Square clicked:', {x, y});
         console.log('Current game state:', {
             currentPlayer: this.currentPlayer,
             isAIGame: this.isAIGame,
             gameOver: this.gameOver,
             selectedPiece: this.selectedPiece,
-            isPlayerTurnComplete: this.isPlayerTurnComplete
+            isPlayerTurnComplete: this.isPlayerTurnComplete,
+            playerColor: this.playerColor
         });
 
-        if (this.gameOver || (this.isAIGame && this.currentPlayer === 'black')) {
+        if (this.gameOver || (this.isAIGame && this.currentPlayer !== this.playerColor)) {
             console.log('Turn blocked because:', {
                 gameOver: this.gameOver,
-                isAITurn: (this.isAIGame && this.currentPlayer === 'black')
+                isAITurn: (this.isAIGame && this.currentPlayer !== this.playerColor)
             });
             return;
         }
@@ -171,71 +213,62 @@ class Game {
     }
 
     async executeMove(move) {
+        const previousState = this.captureCurrentBoardState();
+        this.boardStates.push(previousState);
+
         console.log('Executing move:', move);
         console.log('Game state before move:', {
             currentPlayer: this.currentPlayer,
             isPlayerTurnComplete: this.isPlayerTurnComplete
         });
 
-        // Store the jumped piece before removing it (for undo)
-        const jumpedPieces = move.jumpedPieces.map(piece => ({
-            ...piece,
-            element: piece.element
-        }));
+        // Execute the move
+        const movedPiece = this.board.getPiece(move.fromX, move.fromY);
+        this.board.movePiece(move.fromX, move.fromY, move.toX, move.toY);
 
-        // Remove jumped pieces
-        move.jumpedPieces.forEach(jumpedPiece => {
-            if (jumpedPiece) {  // Add null check
-                console.log('Removing jumped piece:', jumpedPiece);
-                this.board.removePiece(jumpedPiece.x, jumpedPiece.y);
-            }
+        // Handle captures
+        move.jumpedPieces.forEach(piece => {
+            this.board.removePiece(piece.x, piece.y);
+            this.capturedPieces.push(piece);
         });
 
-        const movedPiece = this.board.movePiece(move.fromX, move.fromY, move.toX, move.toY);
-        if (!movedPiece) {
-            console.error('Failed to move piece');
-            return;
+        // Check for king promotion
+        if ((movedPiece.color === 'black' && move.toY === 7) ||
+            (movedPiece.color === 'red' && move.toY === 0)) {
+            movedPiece.makeKing();
         }
-        
-        this.moveHistory.push({
-            move,
-            jumpedPieces
-        });
-        this.boardStates.push(this.captureCurrentBoardState());
 
-        // Check for additional jumps from the NEW position only
-        let additionalJumps = [];
-        try {
-            additionalJumps = Move.getMultiJumps(movedPiece, this.board, move.toX, move.toY);
-            console.log('Additional jumps available:', additionalJumps);
-        } catch (error) {
-            console.error('Error checking for additional jumps:', error);
-            additionalJumps = [];
-        }
+        // Check for additional jumps
+        const additionalJumps = Move.getMultiJumps(movedPiece, this.board, move.toX, move.toY);
+        console.log('Additional jumps available:', additionalJumps);
 
         if (additionalJumps.length > 0 && move.jumpedPieces.length > 0) {
-            if (this.currentPlayer === 'red') {
+            if (!this.isAIGame || (this.isAIGame && this.currentPlayer === this.playerColor)) {
                 this.selectedPiece = movedPiece;
                 this.board.highlightValidMoves(additionalJumps);
                 return;
             }
-            if (this.currentPlayer === 'black' && this.isAIGame) {
-                return;
-            }
         }
 
-        // Complete the turn
+        // Switch turns
         this.currentPlayer = this.currentPlayer === 'red' ? 'black' : 'red';
-        this.board.clearHighlights();
         this.selectedPiece = null;
-        
+        this.board.clearHighlights();
         this.updateGameInfo();
-        this.checkGameOver();
 
-        // Start AI turn if game isn't over
-        if (this.isAIGame && 
-            !this.gameOver && 
-            this.currentPlayer === 'black') {
+        // Check for mandatory jumps immediately after turn switch
+        const mandatoryJumps = this.getAllAvailableJumps();
+        if (mandatoryJumps.length > 0) {
+            this.board.highlightPiecesWithJumps(mandatoryJumps);
+        }
+
+        // Check for game over
+        if (this.checkGameOver()) {
+            return;
+        }
+
+        // Handle AI turn
+        if (this.isAIGame && !this.gameOver && this.currentPlayer !== this.playerColor) {
             console.log('Starting AI turn');
             await new Promise(resolve => setTimeout(resolve, 500));
             try {
@@ -243,16 +276,6 @@ class Game {
             } catch (error) {
                 console.error('Error during AI move:', error);
             }
-        }
-
-        // Check for new mandatory jumps for the next player
-        try {
-            const newJumps = this.getAllAvailableJumps();
-            if (newJumps.length > 0) {
-                this.board.highlightPiecesWithJumps(newJumps);
-            }
-        } catch (error) {
-            console.error('Error checking for new jumps:', error);
         }
     }
 
@@ -485,30 +508,51 @@ class Game {
         const messageElement = document.createElement('div');
         messageElement.className = 'game-message';
         messageElement.textContent = text;
+        
+        // If playing as black, rotate the message to be readable
+        if (this.playerColor === 'black') {
+            messageElement.style.transform = 'translate(-50%, -50%) rotateZ(180deg)';
+        } else {
+            messageElement.style.transform = 'translate(-50%, -50%)';
+        }
+        
         this.board.element.appendChild(messageElement);
         setTimeout(() => messageElement.remove(), 2000);
     }
 
-    showVictoryModal(winner) {
+    showVictoryModal(winner, reason = '') {
         const modal = document.getElementById('victoryModal');
         const message = document.getElementById('victoryMessage');
-        message.textContent = `${winner} Wins!`;
+        
+        // Get piece counts for the message
+        const redPieces = this.board.getPieceCount('red');
+        const blackPieces = this.board.getPieceCount('black');
+        
+        let victoryMessage = '';
+        
+        if (blackPieces === 0 || redPieces === 0) {
+            victoryMessage = `${winner} Wins!\n` +
+                `All opponent's pieces have been captured!\n` +
+                `Final Score - Red: ${redPieces}, Black: ${blackPieces}`;
+        } else {
+            const stuckColor = winner === 'Red' ? 'Black' : 'Red';
+            victoryMessage = `${winner} Wins!\n` +
+                `${stuckColor} has no valid moves available.\n` +
+                `This is known as a "blockade" victory.\n` +
+                `Pieces Remaining - Red: ${redPieces}, Black: ${blackPieces}`;
+        }
+        
+        // Style the message for better readability
+        message.innerHTML = victoryMessage.split('\n').join('<br>');
+        message.style.lineHeight = '1.5';
+        message.style.marginBottom = '20px';
+        
+        // Add some CSS to style the modal content
+        const modalContent = modal.querySelector('.modal-content');
+        modalContent.style.textAlign = 'center';
+        modalContent.style.padding = '2rem';
+        
         modal.style.display = 'block';
-
-        // Handle new game button click
-        const newGameButton = document.getElementById('newGameButton');
-        newGameButton.onclick = () => {
-            modal.style.display = 'none';
-            this.newGame();
-        };
-
-        // Close modal when clicking outside
-        modal.onclick = (event) => {
-            if (event.target === modal) {
-                modal.style.display = 'none';
-                this.newGame();
-            }
-        };
     }
 }
 

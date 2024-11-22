@@ -1,7 +1,7 @@
 :root {
     --square-size: min(10vw, 60px);
     --dark-square: #b58863;
-    --light-square: #ffffff;
+    --light-square: #f0d9b5;
     --red-piece: #ff1744;
     --black-piece: #1a1a1a;
     --board-border: #2d1810;
@@ -16,121 +16,20 @@
     --ambient-light: rgba(255, 255, 255, 0.8);
     --piece-shine: rgba(255, 255, 255, 0.8);
     --wood-dark: #5d4037;
-    --wood-light: #f7f3f2;
+    --wood-light: #8d6e63;
     --gold-gradient: linear-gradient(145deg, #ffd700, #ffa000);
     --red-gradient: linear-gradient(145deg, #ff5252, #ff1744, #d50000);
     --black-gradient: linear-gradient(145deg, #424242, #212121, #000000);
     --square-border: #2d1810;
-    --board-light: #e8d0c3;
-    --board-dark: #4a3b35;
-    --red-piece: #dc2626;
-    --black-piece: #1a1a1a;
-}
-
-body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #1a237e, #311b92);
-    color: white;
-    font-family: 'Arial', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-}
-
-body::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: 
-        linear-gradient(45deg, 
-            rgba(255, 255, 255, 0.05) 25%, 
-            transparent 25%, 
-            transparent 75%, 
-            rgba(255, 255, 255, 0.05) 75%),
-        linear-gradient(45deg, 
-            rgba(255, 255, 255, 0.05) 25%, 
-            transparent 25%, 
-            transparent 75%, 
-            rgba(255, 255, 255, 0.05) 75%);
-    background-size: 60px 60px;
-    background-position: 0 0, 30px 30px;
-    animation: backgroundShift 60s linear infinite;
-    opacity: 0.3;
 }
 
 .game-container {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    padding: 2rem;
-    border-radius: 15px;
-    box-shadow: 
-        0 15px 35px rgba(0, 0, 0, 0.2),
-        0 5px 15px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.game-info {
-    color: white;
-    text-align: center;
-    margin-bottom: 1rem;
-    font-size: 1.2em;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.controls {
-    margin-top: 2rem;
     display: flex;
-    justify-content: center;
-    gap: 1rem;
-}
-
-button {
-    background: linear-gradient(145deg, #43a047, #388e3c);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.5rem;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: all 0.3s ease;
-    box-shadow: 
-        0 4px 15px rgba(0, 0, 0, 0.2),
-        inset 1px 1px 1px rgba(255, 255, 255, 0.3);
-}
-
-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-        0 6px 20px rgba(0, 0, 0, 0.3),
-        inset 1px 1px 1px rgba(255, 255, 255, 0.3);
-}
-
-@keyframes backgroundShift {
-    0% {
-        background-position: 0 0, 30px 30px;
-    }
-    100% {
-        background-position: 1000px 0, 1030px 30px;
-    }
-}
-
-@media (max-width: 768px) {
-    .game-container {
-        padding: 1rem;
-        margin: 1rem;
-    }
-    
-    .game-info {
-        font-size: 1em;
-    }
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
 .board {
@@ -185,13 +84,25 @@ button:hover {
 }
 
 .square.dark {
-    background: var(--board-dark);
-    box-shadow: inset -1px -1px 2px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(145deg, 
+        color-mix(in srgb, var(--dark-square) 120%, #967052),
+        var(--dark-square),
+        color-mix(in srgb, var(--dark-square) 80%, #805c3e)
+    );
+    box-shadow: 
+        inset 2px 2px 5px rgba(255, 255, 255, 0.1),
+        inset -2px -2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .square.light {
-    background: var(--board-light);
-    box-shadow: inset 1px 1px 2px rgba(255, 255, 255, 0.2);
+    background: linear-gradient(145deg, 
+        color-mix(in srgb, var(--light-square) 120%, white),
+        var(--light-square),
+        color-mix(in srgb, var(--light-square) 90%, #e6d5a7)
+    );
+    box-shadow: 
+        inset 2px 2px 5px rgba(255, 255, 255, 0.5),
+        inset -2px -2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .square.dark, .square.light {
@@ -203,62 +114,50 @@ button:hover {
     height: 80%;
     border-radius: 50%;
     position: absolute;
-    transform: translate(-50%, -50%) translateZ(2px);
+    transform: translate(-50%, -50%) translateZ(var(--piece-height));
     left: 50%;
     top: 50%;
     transform-style: preserve-3d;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.piece::before {
-    content: '';
-    position: absolute;
-    width: 80%;
-    height: 80%;
-    border-radius: 50%;
-    top: 10%;
-    left: 10%;
-    background: inherit;
-    filter: brightness(1.2);
-}
-
 .piece.red {
-    background: var(--red-piece);
+    background: var(--red-gradient);
     box-shadow: 
-        0 2px 4px rgba(0, 0, 0, 0.3),
-        inset -4px -4px 8px rgba(0, 0, 0, 0.3),
-        inset 4px 4px 8px rgba(255, 255, 255, 0.3);
+        0 var(--piece-height) 15px rgba(0, 0, 0, 0.3),
+        inset 2px 2px 5px var(--piece-shine),
+        inset -2px -2px 5px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(255, 23, 68, 0.4);
 }
 
 .piece.black {
-    background: var(--black-piece);
+    background: var(--black-gradient);
     box-shadow: 
-        0 2px 4px rgba(0, 0, 0, 0.3),
-        inset -4px -4px 8px rgba(0, 0, 0, 0.5),
-        inset 4px 4px 8px rgba(255, 255, 255, 0.2);
+        0 var(--piece-height) 15px rgba(0, 0, 0, 0.3),
+        inset 2px 2px 5px var(--piece-shine),
+        inset -2px -2px 5px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(0, 0, 0, 0.4);
 }
 
 .piece:hover {
-    transform: translate(-50%, -50%) translateZ(4px) scale(1.05);
+    transform: translate(-50%, -50%) translateZ(var(--piece-height)) scale(1.1);
     box-shadow: 
-        0 4px 8px rgba(0, 0, 0, 0.4),
-        inset -4px -4px 8px rgba(0, 0, 0, 0.3),
-        inset 4px 4px 8px rgba(255, 255, 255, 0.3);
+        0 var(--piece-height) 20px rgba(0, 0, 0, 0.4),
+        inset 2px 2px 10px var(--piece-shine),
+        inset -2px -2px 10px rgba(0, 0, 0, 0.5),
+        0 0 30px var(--highlight-color);
 }
 
 .piece.king::before {
     content: '♔';
     position: absolute;
-    inset: 0;
-    margin: auto;
-    height: fit-content;
-    width: fit-content;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     font-size: 2em;
     background: var(--gold-gradient);
     -webkit-background-clip: text;
-    background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-fill-color: transparent;
     text-shadow: 
         0 0 10px var(--highlight-color),
         0 0 20px var(--highlight-color);
@@ -284,43 +183,27 @@ button:hover {
 }
 
 .move-helper {
-    width: 40%;
-    height: 40%;
+    width: 30%;
+    height: 30%;
     border-radius: 50%;
     background: radial-gradient(
         circle,
-        rgba(255, 255, 0, 0.9) 0%,
-        rgba(255, 215, 0, 0.7) 50%,
-        rgba(255, 215, 0, 0.3) 100%
+        var(--highlight-color) 0%,
+        rgba(255, 215, 0, 0.3) 70%
     );
-    box-shadow: 
-        0 0 10px #ffd700,
-        0 0 20px rgba(255, 215, 0, 0.6);
-    opacity: 0.9;
+    box-shadow: 0 0 15px var(--highlight-color);
+    opacity: 0.6;
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    animation: pulseHelper 1.5s infinite;
-    z-index: 10;
+    animation: pulse 1.5s infinite;
 }
 
-@keyframes pulseHelper {
-    0% { 
-        transform: translate(-50%, -50%) scale(0.8); 
-        opacity: 0.9; 
-    }
-    50% { 
-        transform: translate(-50%, -50%) scale(1.2); 
-        opacity: 1; 
-        box-shadow: 
-            0 0 15px #ffd700,
-            0 0 30px rgba(255, 215, 0, 0.8);
-    }
-    100% { 
-        transform: translate(-50%, -50%) scale(0.8); 
-        opacity: 0.9; 
-    }
+@keyframes pulse {
+    0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.4; }
+    100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.6; }
 }
 
 .must-jump {
@@ -335,10 +218,22 @@ button:hover {
 
 @keyframes mustJumpPulse {
     0%, 100% {
-        transform: translateZ(var(--piece-height)) scale(1);
+        transform: translate(-50%, -50%) translateZ(var(--piece-height)) scale(1);
+        box-shadow: 
+            0 var(--piece-height) 15px rgba(0, 0, 0, 0.3),
+            inset 2px 2px 5px var(--piece-shine),
+            inset -2px -2px 5px rgba(0, 0, 0, 0.3),
+            0 0 20px #ffd700,
+            0 0 40px #ffd700;
     }
     50% {
-        transform: translateZ(calc(var(--piece-height) * 1.2)) scale(1.1);
+        transform: translate(-50%, -50%) translateZ(calc(var(--piece-height) * 1.2)) scale(1.1);
+        box-shadow: 
+            0 var(--piece-height) 15px rgba(0, 0, 0, 0.3),
+            inset 2px 2px 5px var(--piece-shine),
+            inset -2px -2px 5px rgba(0, 0, 0, 0.3),
+            0 0 30px #ffd700,
+            0 0 60px #ffd700;
     }
 }
 
@@ -354,6 +249,44 @@ button:hover {
     z-index: 1000;
 }
 
+.controls {
+    text-align: center;
+    margin: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 0 10px;
+    font-size: 1em;
+    cursor: pointer;
+    background: linear-gradient(145deg, #43a047, #388e3c);
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.2),
+        inset 1px 1px 1px rgba(255, 255, 255, 0.3);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background: linear-gradient(145deg, #4caf50, #43a047);
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.3),
+        inset 1px 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+@media (max-width: 600px) {
+    :root {
+        --square-size: 11vw;
+    }
+    
+    .game-container {
+        padding: 10px;
+    }
+}
+
 .modal {
     display: none;
     position: fixed;
@@ -366,14 +299,14 @@ button:hover {
 }
 
 .modal-content {
-    background-color: #fefefe;
-    margin: 15% auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
     padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
-    max-width: 500px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    text-align: center;
 }
 
 .modal h2 {
@@ -461,13 +394,13 @@ button:hover {
 
 @keyframes moveJump {
     0% {
-        transform: translateZ(var(--piece-height));
+        transform: translate(-50%, -50%) translateZ(var(--piece-height));
     }
     50% {
-        transform: translateZ(calc(var(--piece-height) * 4));
+        transform: translate(-50%, -50%) translateZ(calc(var(--piece-height) * 4));
     }
     100% {
-        transform: translateZ(var(--piece-height));
+        transform: translate(-50%, -50%) translateZ(var(--piece-height));
     }
 }
 
@@ -509,76 +442,10 @@ button:hover {
 @keyframes captureExpand {
     0% {
         transform: scale(0.5);
+        opacity: 1;
     }
     100% {
         transform: scale(2);
+        opacity: 0;
     }
-}
-
-/* Add these styles for the color selection buttons */
-.color-select {
-    margin-bottom: 2rem;
-}
-
-.color-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin: 1rem 0;
-}
-
-.color-button {
-    padding: 0.8rem 1.5rem;
-    font-size: 1.1rem;
-    border: 2px solid rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.color-button.red-button {
-    background: var(--red-gradient);
-    color: white;
-}
-
-.color-button.black-button {
-    background: var(--black-gradient);
-    color: white;
-}
-
-.color-button.active {
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
-    border-color: rgba(255, 255, 255, 0.8);
-}
-
-.mode-select {
-    margin-top: 1rem;
-}
-
-#victoryMessage {
-    font-size: 1.2em;
-    color: #333;
-    margin-bottom: 20px;
-}
-
-.victory-details {
-    font-size: 0.9em;
-    color: #666;
-    margin: 10px 0;
-}
-
-#newGameButton {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    transition: background-color 0.3s;
-}
-
-#newGameButton:hover {
-    background-color: #45a049;
 } 
