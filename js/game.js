@@ -19,8 +19,37 @@ class Game {
         this.mandatoryJumps = [];
         this.boardStates = [];
 
+        this.setupSplashScreen();
+    }
+
+    setupSplashScreen() {
+        const splashScreen = document.getElementById('splashScreen');
+        const buttons = splashScreen.querySelectorAll('.splash-button');
+
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                const mode = button.dataset.mode;
+                this.startGame(mode);
+                splashScreen.style.opacity = '0';
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                }, 500);
+            });
+        });
+    }
+
+    startGame(mode) {
+        // Set up AI based on mode
+        if (mode.startsWith('ai-')) {
+            this.ai = new AI(mode.replace('ai-', ''));
+            this.isAIGame = true;
+        } else {
+            this.ai = null;
+            this.isAIGame = false;
+        }
+
+        // Initialize the game
         this.initialize();
-        this.createAIControls();
     }
 
     initialize() {

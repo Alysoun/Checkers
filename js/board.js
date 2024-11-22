@@ -66,41 +66,86 @@ class Board {
             return null;
         }
 
-        // Ensure piece has a DOM element
-        if (!piece.element) {
-            piece.createDOMElement();
+        // Add movement animation
+        if (piece.element) {
+            piece.element.classList.add('moving');
+            setTimeout(() => {
+                piece.element.classList.remove('moving');
+            }, 500);
         }
 
-        // Update piece position
+        // Move the piece in the data structure
         this.squares[fromY][fromX] = null;
         this.squares[toY][toX] = piece;
         piece.x = toX;
         piece.y = toY;
 
-        // Update DOM
-        const targetSquare = this.getSquareElement(toX, toY);
-        if (targetSquare && piece.element) {
-            try {
-                targetSquare.appendChild(piece.element);
-            } catch (error) {
-                console.error('Error moving piece element:', error);
-                // Recreate and append element if there was an error
-                piece.createDOMElement();
-                targetSquare.appendChild(piece.element);
-            }
+        // Update the DOM
+        const fromSquare = this.getSquareElement(fromX, fromY);
+        const toSquare = this.getSquareElement(toX, toY);
+        if (piece.element && fromSquare && toSquare) {
+            toSquare.appendChild(piece.element);
         }
 
         // Check for king promotion
         if ((piece.color === 'red' && toY === 0) || 
             (piece.color === 'black' && toY === 7)) {
-            try {
-                piece.makeKing();
-            } catch (error) {
-                console.error('Error during king promotion:', error);
-            }
+            this.createKingPromotionEffect(piece);
         }
 
         return piece;
+    }
+
+    createKingPromotionEffect(piece) {
+        const numParticles = 20;
+        const colors = ['#f6cd4c', '#ff4444', '#44ff44'];
+        
+        for (let i = 0; i < numParticles; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.width = '10px';
+            particle.style.height = '10px';
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.left = `${piece.element.offsetLeft + piece.element.offsetWidth / 2}px`;
+            particle.style.top = `${piece.element.offsetTop + piece.element.offsetHeight / 2}px`;
+            
+            // Random starting angle and distance
+            const angle = (Math.random() * Math.PI * 2);
+            const distance = Math.random() * 50 + 20;
+            
+            particle.style.transform = `
+                translate(${Math.cos(angle) * distance}px, 
+                         ${Math.sin(angle) * distance}px)
+                scale(0)
+            `;
+            
+            this.element.appendChild(particle);
+            
+            // Remove particle after animation
+            setTimeout(() => particle.remove(), 1000);
+        }
+
+        // Make the piece a king with animation
+        piece.makeKing();
+    }
+
+    // Add method to create capture effect
+    createCaptureEffect(x, y) {
+        const square = this.getSquareElement(x, y);
+        if (!square) return;
+
+        const effect = document.createElement('div');
+        effect.className = 'capture-effect';
+        effect.style.cssText = `
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,0,0,0.5) 0%, rgba(255,0,0,0) 70%);
+            animation: captureExpand 0.5s ease-out forwards;
+        `;
+
+        square.appendChild(effect);
+        setTimeout(() => effect.remove(), 500);
     }
 
     getPiece(x, y) {
