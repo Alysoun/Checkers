@@ -75,37 +75,36 @@ class Board {
 
     movePiece(fromX, fromY, toX, toY) {
         const piece = this.getPiece(fromX, fromY);
-        if (!piece) {
-            console.error('No piece found at source position:', fromX, fromY);
-            return null;
-        }
+        if (!piece) return null;
 
-        // Add movement animation
+        // Use transform for smooth animation
         if (piece.element) {
-            piece.element.classList.add('moving');
-            setTimeout(() => {
-                piece.element.classList.remove('moving');
-            }, 500);
+            requestAnimationFrame(() => {
+                piece.element.style.transition = 'transform 0.2s ease-out';
+                const translateX = (toX - fromX) * 100;
+                const translateY = (toY - fromY) * 100;
+                const baseTransform = 'translate(-50%, -50%) translateZ(var(--piece-height))';
+                
+                // Reset position first
+                piece.element.style.left = '50%';
+                piece.element.style.top = '50%';
+                
+                // Apply the transform relative to the square
+                piece.element.style.transform = baseTransform;
+                
+                // Move to new square
+                const square = this.getSquareElement(toX, toY);
+                if (square) {
+                    square.appendChild(piece.element);
+                }
+            });
         }
 
-        // Move the piece in the data structure
+        // Update data structure
         this.squares[fromY][fromX] = null;
         this.squares[toY][toX] = piece;
         piece.x = toX;
         piece.y = toY;
-
-        // Update the DOM
-        const fromSquare = this.getSquareElement(fromX, fromY);
-        const toSquare = this.getSquareElement(toX, toY);
-        if (piece.element && fromSquare && toSquare) {
-            toSquare.appendChild(piece.element);
-        }
-
-        // Check for king promotion
-        if ((piece.color === 'red' && toY === 0) || 
-            (piece.color === 'black' && toY === 7)) {
-            this.createKingPromotionEffect(piece);
-        }
 
         return piece;
     }

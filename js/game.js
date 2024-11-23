@@ -60,23 +60,43 @@ class Game {
         this.boardStates = [];
         this.capturedPieces = [];
 
+        // Initialize board first in all cases
+        this.board.initialize();
+        this.board.clear();
+
         if (mode.startsWith('ai-')) {
             this.ai = new AI(mode.replace('ai-', ''));
             this.isAIGame = true;
-            
-            if (this.playerColor === 'black') {
-                this.board.element.style.transform = 
-                    'perspective(1200px) rotateX(var(--board-angle)) rotateZ(180deg) scale(var(--board-scale))';
-                document.querySelectorAll('.piece').forEach(piece => {
-                    piece.style.transform = 'rotateZ(180deg)';
-                });
-            }
         } else {
             this.ai = null;
             this.isAIGame = false;
         }
 
-        this.initialize();
+        // Place pieces based on player color
+        if (this.playerColor === 'black') {
+            // Black perspective: black pieces at bottom (rows 5-7)
+            this.placePieces('black', 5, 8);
+            this.placePieces('red', 0, 3);
+            
+            // Apply rotation for black's perspective
+            const board = document.getElementById('board');
+            if (board) {
+                board.style.transform = 
+                    'perspective(1200px) rotateX(var(--board-angle)) rotateZ(180deg) scale(var(--board-scale))';
+                
+                document.querySelectorAll('.piece').forEach(piece => {
+                    let transform = 'translate(-50%, -50%) translateZ(var(--piece-height))';
+                    if (piece.classList.contains('king')) {
+                        transform += ' rotateZ(180deg)';
+                    }
+                    piece.style.transform = transform;
+                });
+            }
+        } else {
+            // Red perspective: red pieces at bottom (rows 5-7)
+            this.placePieces('red', 5, 8);
+            this.placePieces('black', 0, 3);
+        }
 
         if (this.isAIGame && this.playerColor === 'black') {
             setTimeout(() => this.ai.makeMove(this), 500);
@@ -103,6 +123,17 @@ class Game {
         const mandatoryJumps = this.getAllAvailableJumps();
         if (mandatoryJumps.length > 0) {
             this.board.highlightPiecesWithJumps(mandatoryJumps);
+        }
+
+        // Place pieces based on player's color
+        if (this.playerColor === 'black') {
+            // Place pieces from black's perspective
+            this.placePieces('black', 0, 3);  // Black pieces in first 3 rows
+            this.placePieces('red', 5, 8);    // Red pieces in last 3 rows
+        } else {
+            // Standard red perspective
+            this.placePieces('red', 0, 3);    // Red pieces in first 3 rows
+            this.placePieces('black', 5, 8);  // Black pieces in last 3 rows
         }
     }
 
@@ -364,14 +395,17 @@ class Game {
     }
 
     updateGameInfo() {
-        document.querySelector('.player-turn').textContent = 
+        const playerTurn = document.querySelector('.player-turn');
+        playerTurn.textContent = 
             `Current Turn: ${this.currentPlayer.charAt(0).toUpperCase() + this.currentPlayer.slice(1)}`;
         
         const redCount = this.countPieces('red');
         const blackCount = this.countPieces('black');
         
-        document.querySelector('.red-score').textContent = `Red: ${redCount}`;
-        document.querySelector('.black-score').textContent = `Black: ${blackCount}`;
+        const redScore = document.querySelector('.red-score');
+        const blackScore = document.querySelector('.black-score');
+        redScore.textContent = `Red: ${redCount}`;
+        blackScore.textContent = `Black: ${blackCount}`;
     }
 
     countPieces(color) {
@@ -569,6 +603,19 @@ class Game {
             modal.style.display = 'none';
             this.newGame();
         };
+    }
+
+    // Helper method to place pieces
+    placePieces(color, startRow, endRow) {
+        for (let row = startRow; row < endRow; row++) {
+            for (let col = 0; col < 8; col++) {
+                if ((row + col) % 2 === 1) {
+                    const piece = new Piece(color, col, row);
+                    piece.createDOMElement();
+                    this.board.addPiece(piece);
+                }
+            }
+        }
     }
 }
 
