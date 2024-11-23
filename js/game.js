@@ -243,15 +243,18 @@ class Game {
         console.log('Additional jumps available:', additionalJumps);
 
         if (additionalJumps.length > 0 && move.jumpedPieces.length > 0) {
-            if (!this.isAIGame || (this.isAIGame && this.currentPlayer === this.playerColor)) {
-                this.selectedPiece = movedPiece;
-                this.board.highlightValidMoves(additionalJumps);
-                return;
-            }
+            this.selectedPiece = movedPiece;
+            this.board.clearHighlights();  // Clear previous highlights
+            this.board.highlightValidMoves(additionalJumps);  // Highlight new valid moves
+            movedPiece.element.classList.add('selected');  // Add the selected class
+            return;
         }
 
-        // Switch turns
+        // If we get here, no more jumps are available
+        movedPiece.element.classList.remove('selected');  // Remove the selected class
         this.currentPlayer = this.currentPlayer === 'red' ? 'black' : 'red';
+
+        // Switch turns
         this.selectedPiece = null;
         this.board.clearHighlights();
         this.updateGameInfo();
