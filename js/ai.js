@@ -25,36 +25,42 @@ class AI {
                 const jump = jumps[Math.floor(Math.random() * jumps.length)];
                 await new Promise(resolve => setTimeout(resolve, 500));
                 await game.executeMove(jump);
+                
+                // Check for additional jumps with the same piece
                 let currentPiece = game.board.getPiece(jump.toX, jump.toY);
+                let madeMultipleJumps = false;
 
-                // Continue jumping with the same piece if additional jumps are available
                 while (currentPiece) {
                     const additionalJumps = Move.getMultiJumps(currentPiece, game.board);
                     if (additionalJumps.length === 0) break;
 
-                    // Execute additional jump
+                    madeMultipleJumps = true;
                     const nextJump = additionalJumps[Math.floor(Math.random() * additionalJumps.length)];
                     await new Promise(resolve => setTimeout(resolve, 500));
                     await game.executeMove(nextJump);
                     currentPiece = game.board.getPiece(nextJump.toX, nextJump.toY);
                 }
 
-                // After jumps are complete, return without looking for additional moves
-                return true;
+                // If we made multiple jumps or the turn has switched, end the turn
+                if (madeMultipleJumps || game.currentPlayer !== aiColor) {
+                    console.log('Ending AI turn after jumps');
+                    return true;
+                }
             }
 
-            // Only look for regular moves if no jumps were available
-            const moves = this.getAllPossibleMoves(game, aiColor);
-            console.log('Available regular moves:', moves);
-            
-            if (moves.length > 0) {
-                const move = moves[Math.floor(Math.random() * moves.length)];
-                await new Promise(resolve => setTimeout(resolve, 500));
-                await game.executeMove(move);
-                return true;
+            // Only proceed with regular moves if it's still AI's turn
+            if (game.currentPlayer === aiColor) {
+                const moves = this.getAllPossibleMoves(game, aiColor);
+                console.log('Available regular moves:', moves);
+                
+                if (moves.length > 0) {
+                    const move = moves[Math.floor(Math.random() * moves.length)];
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await game.executeMove(move);
+                }
             }
 
-            return false;
+            return true;
         } catch (error) {
             console.error('Error in AI move:', error);
             return false;
