@@ -425,10 +425,28 @@ class Game {
     }
 
     newGame() {
-        this.board.clear();
-        this.initialize();
+        // Hide the victory modal if it's showing
         const modal = document.getElementById('victoryModal');
         modal.style.display = 'none';
+
+        // Clear the board
+        this.board.clear();
+        
+        // Reset game state
+        this.currentPlayer = 'red';
+        this.gameOver = false;
+        this.selectedPiece = null;
+        this.isPlayerTurnComplete = false;
+        this.boardStates = [];
+        this.capturedPieces = [];
+        
+        // Reinitialize the game
+        this.initialize();
+        
+        // Show splash screen for new game setup
+        const splashScreen = document.getElementById('splashScreen');
+        splashScreen.style.display = 'flex';
+        splashScreen.style.opacity = '1';
     }
 
     createAIControls() {
@@ -542,17 +560,15 @@ class Game {
                 `Pieces Remaining - Red: ${redPieces}, Black: ${blackPieces}`;
         }
         
-        // Style the message for better readability
         message.innerHTML = victoryMessage.split('\n').join('<br>');
-        message.style.lineHeight = '1.5';
-        message.style.marginBottom = '20px';
-        
-        // Add some CSS to style the modal content
-        const modalContent = modal.querySelector('.modal-content');
-        modalContent.style.textAlign = 'center';
-        modalContent.style.padding = '2rem';
-        
         modal.style.display = 'block';
+
+        // Add event listener to the New Game button in the modal
+        const newGameButton = document.getElementById('newGameButton');
+        newGameButton.onclick = () => {
+            modal.style.display = 'none';
+            this.newGame();
+        };
     }
 }
 
