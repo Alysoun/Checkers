@@ -19,6 +19,7 @@ class Game {
         this.mandatoryJumps = [];
         this.boardStates = [];
         this.playerColor = 'red';
+        this.moveCount = 0;
 
         this.setupSplashScreen();
     }
@@ -59,6 +60,7 @@ class Game {
         this.isPlayerTurnComplete = false;
         this.boardStates = [];
         this.capturedPieces = [];
+        this.moveCount = 0;
 
         if (mode.startsWith('ai-')) {
             this.ai = new AI(mode.replace('ai-', ''));
@@ -216,6 +218,11 @@ class Game {
         const previousState = this.captureCurrentBoardState();
         this.boardStates.push(previousState);
 
+        // Increment move count only when switching turns (not during multi-jumps)
+        if (!move.jumpedPieces.length || !Move.getMultiJumps(this.board.getPiece(move.toX, move.toY), this.board).length) {
+            this.moveCount++;
+        }
+        
         console.log('Executing move:', move);
         console.log('Game state before move:', {
             currentPlayer: this.currentPlayer,
@@ -541,7 +548,7 @@ class Game {
         setTimeout(() => messageElement.remove(), 2000);
     }
 
-    showVictoryModal(winner, reason = '') {
+    showVictoryModal(winner) {
         const modal = document.getElementById('victoryModal');
         const message = document.getElementById('victoryMessage');
         
@@ -554,13 +561,15 @@ class Game {
         if (blackPieces === 0 || redPieces === 0) {
             victoryMessage = `${winner} Wins!\n` +
                 `All opponent's pieces have been captured!\n` +
-                `Final Score - Red: ${redPieces}, Black: ${blackPieces}`;
+                `Final Score - Red: ${redPieces}, Black: ${blackPieces}\n` +
+                `Total Moves: ${this.moveCount}`;
         } else {
             const stuckColor = winner === 'Red' ? 'Black' : 'Red';
             victoryMessage = `${winner} Wins!\n` +
                 `${stuckColor} has no valid moves available.\n` +
                 `This is known as a "blockade" victory.\n` +
-                `Pieces Remaining - Red: ${redPieces}, Black: ${blackPieces}`;
+                `Pieces Remaining - Red: ${redPieces}, Black: ${blackPieces}\n` +
+                `Total Moves: ${this.moveCount}`;
         }
         
         message.innerHTML = victoryMessage.split('\n').join('<br>');
